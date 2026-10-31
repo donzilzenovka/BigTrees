@@ -1,0 +1,16 @@
+pluginManagement {
+    repositories {
+        maven {
+            name = 'GTNH Maven'
+            url = 'https://nexus.gtnewhorizons.com/repository/public/'
+            content {
+                includeGroup 'com.gtnewhorizons'
+                includeGroupByRegex 'com\\.gtnewhorizons\\..+'
+            }
+        }
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+
+rootProject.name = 'BigTrees'
