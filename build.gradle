@@ -1,78 +1,39 @@
-buildscript {
-    repositories {
-        mavenCentral()
-        maven {
-            name = "forge"
-            url = "http://files.minecraftforge.net/maven"
-        }
-        maven {
-            name = "sonatype"
-            url = "https://oss.sonatype.org/content/repositories/snapshots/"
-        }
-    }
-    dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:1.2-SNAPSHOT'
-    }
+plugins {
+    id 'java'
+    id 'com.gtnewhorizons.retrofuturagradle' version '2.0.2'
 }
 
-apply plugin: 'forge'
+def buildConfig = new Properties()
+file('build.properties').withInputStream { buildConfig.load(it) }
 
-ext.configFile = file('build.properties')
-ext.config = parseConfig(configFile)
+group = 'karob.bigtrees'
+version = buildConfig.getProperty('version', '0.3')
+archivesBaseName = 'bigtrees'
 
-version = config.version
-group= "karob.bigtrees" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = "bigtrees"
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(8)
+    }
+}
 
 minecraft {
-    version = "${config.forge_version}-${config.mc_version}"
-    runDir = "eclipse"
-	
-	replace 'GRADLE:VERSION', config.version
-	replaceIn 'Constants.java'
+    mcVersion.set('1.7.10')
+    username.set('Developer')
+    injectedTags.put('VERSION', project.version.toString())
 }
 
-dependencies {
-    // you may put jars on which you depend on in ./libs
-    // or you may define them like so..
-    //compile "some.group:artifact:version:classifier"
-    //compile "some.group:artifact:version"
-      
-    // real examples
-    //compile 'com.mod-buildcraft:buildcraft:6.0.8:dev'  // adds buildcraft to the dev env
-    //compile 'com.googlecode.efficient-java-matrix-library:ejml:0.24' // adds ejml to the dev env
-
-    // for more info...
-    // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
-    // http://www.gradle.org/docs/current/userguide/dependency_management.html
-
+tasks.named('injectTags') {
+    outputClassName.set('karob.bigtrees.Tags')
 }
 
-processResources
-{
-    // this will ensure that this task is redone when the versions change.
-    inputs.property "version", project.version
-    inputs.property "mcversion", project.minecraft.version
-
-    // replace stuff in mcmod.info, nothing else
-    from(sourceSets.main.resources.srcDirs) {
-        include 'mcmod.info'
-                
-        // replace version and mcversion
-        expand 'version':project.version, 'mcversion':project.minecraft.version
-    }
-        
-    // copy everything else, thats not the mcmod.info
-    from(sourceSets.main.resources.srcDirs) {
-        exclude 'mcmod.info'
-    }
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
 }
 
-
-def parseConfig(File config) {
-    config.withReader {
-        def prop = new Properties()
-        prop.load(it)
-        return (new ConfigSlurper().parse(prop))
+tasks.named('processResources') {
+    def modVersion = project.version.toString()
+    inputs.property('version', modVersion)
+    filesMatching('mcmod.info') {
+        expand(version: modVersion, mcversion: '1.7.10')
     }
 }
